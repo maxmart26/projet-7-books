@@ -6,7 +6,7 @@ const {upload} = require('../multer/multer');
 
 
 router.get('/', bookCtrl.getAllBook);
-router.post('/', /*upload.single("image")auth,*/ bookCtrl.createBook);
+router.post('/', upload.single("image"), bookCtrl.createBook);
 router.get('/:id', bookCtrl.getBook);
 router.put('/:id',auth, bookCtrl.uptateOneBook);
 router.delete('/:id',auth, bookCtrl.deleteBook);

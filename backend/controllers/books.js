@@ -1,17 +1,20 @@
-const Books = require('../models/Book');
+const {Book} = require('../models/Book');
 const {bookss} = require('../books');
 
 
-
-/*exports.createBook = (req, res,next) => {
-  const Books = req.body;
-  console.log("book",Books);
-};*/
-exports.createBook = (req, res,next) => {
-  const Book = new Books({...req.body});
-  Book.save()
-  .then(() => res.status(201).json({message:"ok"}))
-  .catch(error => res.status(400).json({ error }));
+exports.createBook =  async (req, res,next) => {
+  const file = req.file;
+  const stringifiedBook = req.body.book;
+  const book = JSON.parse(stringifiedBook);
+  book.imageUrl = file.path;
+  try{
+  const result = await Book.create(book);
+  res.send({ message:"livre crée"})
+  }
+  catch (e){
+    console.error(e);
+    res.status(500).send("erreur de la requete" + e.message)
+  }
 }
 
 exports.getAllBook = (req, res,) => {
