@@ -46,13 +46,24 @@ exports.getBook = async (req, res) => {
 }
 
 exports.uptateOneBook = (req, res, next) => {
-    Books.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
+  const book = JSON.parse(req.body.book);
+  const newBook = {};
+    if (book.title) newBook.title = book.title;
+    if (book.author) newBook.author = book.author;
+    if (book.year) newBook.year = book.year;
+    if (book.genre) newBook.genre = book.genre;
+    if (req.file != null) newBook.imageUrl = req.file.filename;
+    console.log("nouveau livre:",newBook);
+    Book.updateOne({ _id: req.params.id }, {...newBook, _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Objet modifié !'}))
       .catch(error => res.status(400).json({ error }));
   };
 
 exports.deleteBook = (req, res, next) => {
-    Books.deleteOne({ _id: req.params.id })
+    Book.deleteOne({ _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
       .catch(error => res.status(400).json({ error }));
   }
+exports.bestrating = (req,res) => {
+  
+}

@@ -30,7 +30,7 @@ exports.signup = (req, res, next) => {
                     const token = jwt.sign(
                         { userId: user._id },
                         'RANDOM_TOKEN_SECRET',
-                        { expiresIn: '24h' }
+                        { expiresIn: '1d' }
                     );
                     console.log("Generated token:", token); // Ajout du console.log pour afficher le token
                     res.status(200).json({
