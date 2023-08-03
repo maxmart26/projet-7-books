@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+// le schema de la collection book
 const BookSchema = new mongoose.Schema({
   userId: String,
   title: String,

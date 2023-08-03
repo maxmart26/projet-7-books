@@ -1,6 +1,7 @@
 const {Book} = require('../models/Book');
+const fs = require('fs');
 
-
+// middleware pour la création d'un livre
 exports.createBook =  async (req, res,next) => {
   const file = req.file.filename;
   const stringifiedBook = req.body.book;
@@ -15,7 +16,7 @@ exports.createBook =  async (req, res,next) => {
     res.status(500).send("erreur de la requete" + e.message)
   }
 }
-
+// middleware pour la récupération de tous les livres
 exports.getAllBook = async (req, res,) => {
   try {
     const books = await Book.find();
@@ -28,7 +29,7 @@ exports.getAllBook = async (req, res,) => {
     res.status(500).send("erreur:" + e.message);
   }
 }
-
+// middleware pour la récupération d'un livre
 exports.getBook = async (req, res) => {
   const id = req.params.id;
   try {
@@ -44,27 +45,44 @@ exports.getBook = async (req, res) => {
     res.status(500).send("Something went wrong:" + e.message);
   }
 }
-
+// middleware pour la modification d'un livre
 exports.uptateOneBook = (req, res, next) => {
-  const book = JSON.parse(req.body.book);
-  const newBook = {};
-    if (book.title) newBook.title = book.title;
-    if (book.author) newBook.author = book.author;
-    if (book.year) newBook.year = book.year;
-    if (book.genre) newBook.genre = book.genre;
-    if (req.file != null) newBook.imageUrl = req.file.filename;
-    console.log("nouveau livre:",newBook);
-    Book.updateOne({ _id: req.params.id }, {...newBook, _id: req.params.id })
+  const book = req.body.file;
+  findBook = Book.findOne({ _id: req.params.id })
+  .then(book => {
+    if (req.file) {
+      const filename = book.imageUrl.split('/images/');
+      fs.unlink(`image/${filename}`, () => {});
+      book.imageUrl = req.file.filename;
+    }
+    if (req.body.title) book.title = req.body.title;
+    if (req.body.author) book.author = req.body.author;
+    if (req.body.year) book.year = req.body.year;
+    if (req.body.genre) book.genre = req.body.genre;
+    book.save()
       .then(() => res.status(200).json({ message: 'Objet modifié !'}))
       .catch(error => res.status(400).json({ error }));
+  })
+  .catch(error => res.status(500).json({ error }));
   };
-
+// middleware pour la suppression d'un livre
 exports.deleteBook = (req, res, next) => {
-    Book.deleteOne({ _id: req.params.id })
+  Book.findOne({ _id: req.params.id })
+  .then(book => {
+    if (!book) {
+      return res.status(404).json({ message: 'Book not found' });
+    }
+    // Delete the image from the server
+    const filename = book.imageUrl.split('/images/');
+    fs.unlink(`image/${filename}`, () => {
+      Book.deleteOne({ _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
       .catch(error => res.status(400).json({ error }));
+    });
+  })
+  .catch(error => res.status(500).json({ error }));
   }
-
+// middleware pour la récupération des 3 meilleurs livres
 exports.bestrating = async (req,res) => {
   try {
     const books = await Book.find().sort({averageRating:-1}).limit(3);
@@ -77,7 +95,7 @@ exports.bestrating = async (req,res) => {
     res.status(500).send("erreur:" + error.message);
   }
 }
-
+// middleware pour la notation d'un livre
 exports.ratingBook = async (req,res) => {
   const id = req.params.id;
   if (id == null || id == "undefined") {
