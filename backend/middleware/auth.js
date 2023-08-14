@@ -1,20 +1,22 @@
 const jwt = require('jsonwebtoken');
 
 
-// middleware pour la verification du token
-module.exports = (req, res, next) => {
-   try {
-       const token = req.headers.authorization.split(' ')[1];
-       if (token == null) {
-        res.status(401).send("Unauthorized");
-        return;
-      }
-       const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
-       const userId = decodedToken.userId;
-       req.userId = userId
-       ;
-	next();
-   } catch(error) {
-       res.status(401).json({ error });
-   }
-};
+module.exports =  (req, res, next) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1];
+        console.log("token",token);
+        if (token == null) {
+         res.status(401).send("Unauthorized");
+         return;
+       }
+        const decodedToken = jwt.verify(token,'RANDOM_TOKEN_SECRET');
+        const userId = decodedToken.userId;
+        req.userId = userId
+        ;
+        console.log("req.userId",req.userId);
+       
+     next();
+    } catch(error) {
+        res.status(401).json({ error });
+    }
+ };

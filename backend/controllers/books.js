@@ -3,11 +3,13 @@ const fs = require('fs');
 
 // middleware pour la création d'un livre
 exports.createBook =  async (req, res,next) => {
-  const file = req.file.filename;
+  try{
+    const portFromEnv = process.env.PORT || 4000;
+    const file = req.file.filename;
   const stringifiedBook = req.body.book;
   const book = JSON.parse(stringifiedBook);
-  book.imageUrl = file;
-  try{
+  ///book.image
+  book.imageUrl = `http://localhost:${portFromEnv}/images/` + file;
   const result = await Book.create(book);
   res.send({ message:"livre crée"})
   }
@@ -20,9 +22,6 @@ exports.createBook =  async (req, res,next) => {
 exports.getAllBook = async (req, res,) => {
   try {
     const books = await Book.find();
-    books.forEach((book) => {
-      book.imageUrl = "http://localhost:4000/images/" + book.imageUrl;
-    });
     res.send(books);
   } catch (e) {
     console.error(e);
@@ -31,14 +30,13 @@ exports.getAllBook = async (req, res,) => {
 }
 // middleware pour la récupération d'un livre
 exports.getBook = async (req, res) => {
-  const id = req.params.id;
   try {
+    const id = req.params.id;
     const book = await Book.findById(id);
     if (book == null) {
       res.status(404).send("Book not found");
       return;
     }
-    book.imageUrl = "http://localhost:4000/images/" + book.imageUrl;
     res.send(book);
   } catch (e) {
     console.error(e);
@@ -47,13 +45,16 @@ exports.getBook = async (req, res) => {
 }
 // middleware pour la modification d'un livre
 exports.uptateOneBook = (req, res, next) => {
+  const portFromEnv = process.env.PORT || 4000;
   const book = req.body.file;
   findBook = Book.findOne({ _id: req.params.id })
   .then(book => {
     if (req.file) {
       const filename = book.imageUrl.split('/images/');
       fs.unlink(`image/${filename}`, () => {});
-      book.imageUrl = req.file.filename;
+      const file = req.file.filename;
+      const filenames = `http://localhost:${portFromEnv}/images/` + file;
+      book.imageUrl = filenames;
     }
     if (req.body.title) book.title = req.body.title;
     if (req.body.author) book.author = req.body.author;
@@ -86,9 +87,6 @@ exports.deleteBook = (req, res, next) => {
 exports.bestrating = async (req,res) => {
   try {
     const books = await Book.find().sort({averageRating:-1}).limit(3);
-  books.forEach((book) => {
-    book.imageUrl = "http://localhost:4000/images/" + book.imageUrl;
-  });
   res.send(books);
   } catch (error) {
     console.error(error);
@@ -105,28 +103,28 @@ exports.ratingBook = async (req,res) => {
   const rating = req.body.rating;
   const userId = req.body.userId;
   try {
-    const book = await Book.findById(id);
+    const book = await Book.findById(id);//on récupère le livre
     if (book == null) {
       res.status(404).send("Book not found");
       return;
     }
-    const ratingsInDb = book.ratings;
+    const ratingsInDb = book.ratings;//on récupère les notes du livre
     const previousRatingFromCurrentUser = ratingsInDb.find((rating) => rating.userId == userId);
     if (previousRatingFromCurrentUser != null) {
       res.status(400).send("You have already rated this book");
       return;
     }
-    const newRating = { userId, grade: rating };
-    ratingsInDb.push(newRating);
-    book.averageRating = calcul(ratingsInDb);
-    await book.save();
-    res.send("Rating posted");
+    const newRating = { userId, grade: rating };//on crée une nouvelle note
+    ratingsInDb.push(newRating);//on ajoute la nouvelle note au tableau des notes
+    book.averageRating = calcul(ratingsInDb);//on calcule la moyenne des notes
+    await book.save();//on sauvegarde le livre
+    res.send(book);//on envoie une réponse
   } catch (e) {
     console.error(e);
     res.status(500).send("Something went wrong:" + e.message);
   }
 }
-function calcul(ratings){
+function calcul(ratings){//fonction pour calculer la moyenne des notes
   const sum = ratings.reduce((acc, rating) => acc + rating.grade, 0);
   return sum / ratings.length;
 }
