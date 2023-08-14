@@ -118,6 +118,7 @@ exports.ratingBook = async (req,res) => {
     ratingsInDb.push(newRating);//on ajoute la nouvelle note au tableau des notes
     book.averageRating = calcul(ratingsInDb);//on calcule la moyenne des notes
     await book.save();//on sauvegarde le livre
+
     res.send(book);//on envoie une réponse
   } catch (e) {
     console.error(e);
@@ -126,5 +127,8 @@ exports.ratingBook = async (req,res) => {
 }
 function calcul(ratings){//fonction pour calculer la moyenne des notes
   const sum = ratings.reduce((acc, rating) => acc + rating.grade, 0);
-  return sum / ratings.length;
+  const average = sum / ratings.length;
+  return average.toFixed(2);
+  
+
 }
