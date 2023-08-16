@@ -9,7 +9,7 @@ exports.createBook =  async (req, res,next) => {
   const stringifiedBook = req.body.book;
   const book = JSON.parse(stringifiedBook);
   ///book.image
-  book.imageUrl = `http://localhost:${portFromEnv}/images/` + file;
+  book.imageUrl = `http://localhost:${portFromEnv}/images/` + file +"-resized.jpg";
   const result = await Book.create(book);
   res.send({ message:"livre crée"})
   }
@@ -52,8 +52,9 @@ exports.uptateOneBook = (req, res, next) => {
     if (req.file) {
       const filename = book.imageUrl.split('/images/');
       fs.unlink(`image/${filename}`, () => {});
+      console.log(req.file);
       const file = req.file.filename;
-      const filenames = `http://localhost:${portFromEnv}/images/` + file;
+      const filenames = `http://localhost:${portFromEnv}/images/` + file +"-resized.jpg";
       book.imageUrl = filenames;
     }
     if (req.body.title) book.title = req.body.title;
