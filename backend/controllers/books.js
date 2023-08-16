@@ -51,7 +51,8 @@ exports.uptateOneBook = (req, res, next) => {
   .then(book => {
     if (req.file) {
       const filename = book.imageUrl.split('/images/');
-      fs.unlink(`image/${filename}`, () => {});
+      console.log(filename);
+      fs.unlink(`image/${filename[1]}`, () => {});
       console.log(req.file);
       const file = req.file.filename;
       const filenames = `http://localhost:${portFromEnv}/images/` + file +"-resized.jpg";
@@ -76,7 +77,7 @@ exports.deleteBook = (req, res, next) => {
     }
     // Delete the image from the server
     const filename = book.imageUrl.split('/images/');
-    fs.unlink(`image/${filename}`, () => {
+    fs.unlink(`image/${filename[1]}`, () => {
       Book.deleteOne({ _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
       .catch(error => res.status(400).json({ error }));
